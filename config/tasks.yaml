@@ -1,0 +1,51 @@
+fetch_news_task:
+  description: >
+    Use the NewsFetcherTool with results_per_topic set to exactly 3 to
+    find the latest trending news for these topics: {topics}. Do not
+    request more than 3 results per topic — this keeps the dispatch
+    fast and within API limits. Return the raw list of headlines,
+    snippets, source URLs, and topic for each article. Do not
+    summarize yet.
+  expected_output: >
+    A list of raw news items, each with headline, snippet, source URL, and topic.
+  agent: researcher
+
+summarize_news_task:
+  description: >
+    Take the raw news items from the previous task and produce a
+    short, clear summary (2-3 sentences) for each item. Remove
+    duplicate stories covering the same event. For EACH item, output
+    exactly this block format, with a "---" line between items:
+      Topic: <topic>
+      Headline: <headline>
+      Summary: <2-3 sentence summary>
+      Source URL: <url>
+      ---
+  expected_output: >
+    A de-duplicated list of items in the exact block format described,
+    each with topic, headline, summary, and source URL.
+  agent: summarizer
+  context:
+    - fetch_news_task
+
+publish_news_task:
+  description: >
+    Take the final summarized news list and:
+    1. Use the SlackBotTool to post the items (headline + summary + link)
+       to the team's private Slack channel.
+    2. Use the SheetsLoggerTool to append each item as a new row in the
+       Google Sheet (Date, Headline, Summary, Source URL).
+    Each tool returns an exact confirmation string when it finishes
+    (e.g. "Posted 3 message(s) to Slack successfully." and "Logged 8
+    row(s) to Google Sheets."). Remember these two exact strings — you
+    will need them, unmodified, for your final answer.
+  expected_output: >
+    Your final answer must be EXACTLY the two confirmation strings
+    returned by SlackBotTool and SheetsLoggerTool, each on its own
+    line, copied verbatim with no rewording, no extra commentary, and
+    no additional sentences before or after. Example shape:
+      Posted 8 message(s) to Slack successfully.
+      Logged 8 row(s) to Google Sheets.
+  agent: publisher
+  context:
+    - summarize_news_task

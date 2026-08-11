@@ -1,0 +1,9 @@
+venv/
+.venv/
+env/
+main.py
+__pycache__/
+*.pyc
+node_modules/
+.next/
+credentials/google_service_account.json
